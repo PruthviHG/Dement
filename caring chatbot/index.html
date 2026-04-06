@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NEXUS // 2026</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col h-screen selection:bg-cyan-500 selection:text-black">
+
+    <div id="canvas-container"></div>
+
+    <div id="main-ui" class="relative z-10 flex flex-col h-full w-full pointer-events-auto transition-opacity duration-500 opacity-100">
+        
+        <header class="flex-none py-4 px-6 border-b border-cyan-500/20 glass-panel flex items-center justify-between shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-transparent border border-cyan-400 flex items-center justify-center font-bold text-sm shadow-[0_0_10px_rgba(69,243,255,0.4)] text-cyan-400 font-mono">N</div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-[0.2em] text-cyan-50">NEXUS <span class="text-[9px] font-mono text-cyan-400 align-top ml-1 border border-cyan-500/30 rounded px-1 bg-cyan-500/10 tracking-normal">MIND.SYS</span></h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="exportChat()" class="hidden md:block text-[10px] font-mono tracking-widest text-cyan-400 border border-cyan-400/50 hover:bg-cyan-400 hover:text-black px-3 py-1.5 rounded transition-all">EXPORT LOG</button>
+                <button onclick="openArcade()" class="hidden md:block text-[10px] font-mono tracking-widest text-cyan-400 border border-cyan-400/50 hover:bg-cyan-400/10 px-3 py-1.5 rounded transition-all">SIMULATION HUB</button>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#45f3ff] animate-pulse"></div>
+                    <span class="text-[10px] text-cyan-400/70 font-mono hidden sm:inline tracking-widest">UPLINK ACTIVE</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow overflow-y-auto relative w-full flex flex-col items-center scroll-smooth">
+            <div id="chatbox" class="w-full max-w-4xl flex flex-col space-y-6 px-4 py-8 pb-40"></div>
+        </main>
+
+        <footer class="fixed bottom-0 inset-x-0 w-full flex justify-center pb-6 pt-16 px-4 glass-fade">
+            <div class="w-full max-w-4xl relative group">
+                <div class="absolute -inset-0.5 bg-cyan-500 rounded-lg blur opacity-10 group-focus-within:opacity-30 transition duration-500"></div>
+                <div class="relative flex items-end gap-2 bg-[#0b0c10]/90 rounded-lg p-2 border border-cyan-500/30 shadow-2xl focus-within:border-cyan-400 transition-colors">
+                    <textarea id="messageInput" class="w-full max-h-48 min-h-[44px] bg-transparent text-gray-100 placeholder-cyan-700/50 px-4 py-2.5 outline-none resize-none leading-relaxed font-mono text-sm" placeholder="Message your friend... 🤍" rows="1"></textarea>
+                    <button id="sendButton" class="flex-none p-2 rounded bg-transparent border border-cyan-500 text-cyan-400 hover:bg-cyan-500 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-[44px] w-[44px] flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 -rotate-90">
+                            <path d="M3.478 2.404a.75.75 0 00-.926.941l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.404z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="player-widget">
+        <div id="player-toggle" onclick="togglePlayer()">🎵 AUDIO SYNC</div>
+        <div id="floating-player">
+            <div id="audio-status" class="text-[9px] text-cyan-400 mb-2 font-mono tracking-widest font-bold">/// GITHUB REPO SYNC</div>
+            <p id="track-display" class="text-white text-xs font-mono mb-2 truncate w-full">Connecting...</p>
+            <audio id="main-audio" controls controlsList="nodownload noplaybackrate" class="custom-audio opacity-80 hover:opacity-100 transition-opacity" crossorigin="anonymous"></audio>
+            <div class="flex justify-between items-center mt-3">
+                <button id="prev-btn" class="btn">&lt; PREV</button>
+                <button id="next-btn" class="btn">NEXT &gt;</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-modal">
+        <div class="top-nav">
+            <div class="nav-btn font-mono" id="back-to-menu-btn" style="display:none;" onclick="showMenu()">&lt; HUB</div>
+            <div class="nav-btn font-mono" onclick="closeArcade()">EXIT SIMULATION</div>
+        </div>
+        
+        <div id="arcade-view" class="flex flex-col items-center w-full">
+            <div class="arcade-title font-mono text-cyan-400 shadow-cyan-400">CITY OF MIND GAMES</div>
+            <div id="arcade-menu">
+                <button class="arcade-btn btn-surge font-mono" onclick="prepareGame('surge')">NEON SURGE <span class="btn-desc">Dodge geometry</span></button>
+                <button class="arcade-btn btn-snake font-mono" onclick="prepareGame('snake')">QUANTUM SNAKE <span class="btn-desc">Collect data</span></button>
+                <button class="arcade-btn btn-defend font-mono" onclick="prepareGame('defend')">PULSE DEFENDER <span class="btn-desc">Shoot anomalies</span></button>
+                <button class="arcade-btn btn-breaker font-mono" onclick="prepareGame('breaker')">NEON BREAKER <span class="btn-desc">Paddle physics</span></button>
+                <button class="arcade-btn btn-dash font-mono" onclick="prepareGame('dash')">HYPER DASH <span class="btn-desc">Tunnel navigation</span></button>
+                <button class="arcade-btn btn-flow font-mono" onclick="prepareGame('flow')">DATA LINK <span class="btn-desc">Connect nodes</span></button>
+                <button class="arcade-btn btn-hike font-mono" onclick="prepareGame('hike')">ZEN HIKE <span class="btn-desc">WASD to explore</span></button>
+                <button class="arcade-btn btn-farm font-mono" onclick="prepareGame('farm')">NEON FARM <span class="btn-desc">Plant and harvest</span></button>
+                <button class="arcade-btn btn-breathe font-mono" onclick="prepareGame('breathe')">BOX BREATHING <span class="btn-desc">Find your center</span></button>
+                <button class="arcade-btn btn-yoga font-mono" onclick="prepareGame('yoga')">DESK YOGA <span class="btn-desc">Stretch & release</span></button>
+            </div>
+        </div>
+
+        <div id="game-container">
+            <div style="position: relative; width: 100%;">
+                
+                <div id="game-intro-screen">
+                    <h2 id="intro-title" class="intro-title font-mono"></h2>
+                    <div class="intro-desc-box">
+                        <div class="intro-icon">ℹ️</div>
+                        <h3 class="text-cyan-400 font-bold mb-2 font-mono text-sm tracking-widest">HOW TO PLAY</h3>
+                        <p id="intro-desc" class="text-gray-300 font-mono text-xs leading-relaxed"></p>
+                    </div>
+                    <button id="start-game-btn" class="arcade-btn font-mono" style="width: auto; padding: 15px 40px; font-size: 16px;" onclick="startGameReal()">START SEQUENCE</button>
+                </div>
+
+                <canvas id="game-canvas" width="800" height="500"></canvas>
+                
+                <div id="game-over-screen">
+                    <h2 id="game-over-title" class="text-3xl md:text-5xl font-black text-red-500 mb-2 md:mb-4 tracking-widest drop-shadow-lg text-center font-mono">SYSTEM FAILURE</h2>
+                    <p id="final-score" class="text-xl md:text-2xl text-white mb-6 md:mb-8 font-bold font-mono">SCORE: 0</p>
+                    <button id="retry-btn-dynamic" class="arcade-btn" style="width: auto; padding: 10px 20px;" onclick="retryGame()">RETRY SEQUENCE</button>
+                </div>
+            </div>
+            <p id="game-score" class="text-xl md:text-2xl text-white mt-4 font-bold tracking-widest font-mono" style="display: none;">SCORE: 0</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
